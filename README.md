@@ -183,7 +183,72 @@ class Foo
 end
 ```
 
-### Ruby naming conventions
+### Instance variable visibility
+
+Instance variables are private, always (and remember that "private" things in
+Ruby are accessible in the subclass).
+
+How do you make a variable readable/writable? You define getters and setters
+in a way that makes the methods act like an attribute.
+
+```
+class Foo
+    def initialize(val)
+        @val = val
+    end
+
+    # getter
+    def val
+        @val
+    end
+
+    # setter
+    def val=(val)
+        @val = val
+    end
+end
+
+a = Foo.new(1)
+puts a.val
+a.val = 2
+puts a.val
+```
+
+##### Accessors
+
+"Accessors" are a shorter way to define getters and setters. There are three
+keywords we can use:
+
+- `attr_reader`: create a getter method
+- `attr_writer`: create a setter method
+- `attr_accessor`: create both a getter and a setter
+
+The example above can therefore be shortened to the following.
+
+```
+class Foo
+    def initialize(val)
+        @val = val
+    end
+
+    attr_reader :val
+    attr_writer :val
+end
+```
+
+Since we want _both_ a reader and a writer, we can use `attr_accessor` instead.
+
+```
+class Foo
+    def initialize(val)
+        @val = val
+    end
+
+    attr_accessor :val
+end
+```
+
+### Method naming conventions
 
 Ruby allows `!`, `=`, and `?` characters in method names:
 
@@ -196,5 +261,5 @@ setters respectively.
 
 A good reference is
 [The Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide) (which I
-obviously haven't read because I have been using 4 spaces for indentation
+obviously haven't read because I have been using four spaces for indentation
 instead of two).
