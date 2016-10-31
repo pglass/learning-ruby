@@ -70,6 +70,24 @@ ruby file. If you require a file from the same directory, you can use
 `include` has nothing to do with files. It is an OOP mechanism to support
 mixins.
 
+### Why is `require 'rubygems'` at the top of everyone's code?
+
+tl;dr: Never do this!
+
+This [overrides the built-in `require`](http://stackoverflow.com/a/2711857) to
+additionally search the your installed gems.
+
+Historically (before Ruby 1.9) you needed to require rubygems yourself to use
+installed gems. However, ["Ruby 1.9 and newer ships with RubyGems built-in"](
+http://guides.rubygems.org/rubygems-basics/). Ruby 1.9 was released in 2007, so
+new code that uses rubygems should *never* `require 'rubygems'`.
+
+On old versions of Ruby (<= 1.8) you should [still never `require 'rubygems'](
+http://2ndscale.com/rtomayko/2009/require-rubygems-antipattern) in your code.
+Instead, configure the environment to acheive the same thing. You can `ruby
+-rubygems main.rb` or `export RUBYOPT="rubygems"`. And for executables
+installed by `gem`, rubygems installs wrappers that require rubygems for you.
+
 Classes
 -------
 
@@ -263,3 +281,98 @@ A good reference is
 [The Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide) (which I
 obviously haven't read because I have been using four spaces for indentation
 instead of two).
+
+Arrays
+------
+
+Arrays in Ruby are 0-indexed and look like:
+
+```
+x = [1, 2, 3]
+
+# indexing
+puts x[0]
+
+# get the length - these are all the same
+puts x.length, x.count, x.size
+```
+
+### Iterating arrays
+
+The [Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide#syntax) says
+to use iterators instead of `for` loops. Why?
+
+- `for` loops use iterators under the cover anyway
+- `for` loops don't have their own scopes! Variables defined in a for loop
+are accessible after the for loop completes
+
+Use the `each` method to iterate over an array. `each` accepts a "block" which
+can be written in two different ways:
+
+```
+x.each do |val|
+    puts val
+end
+```
+
+A shorter way to write this is:
+
+```
+x.each { |val| puts val }
+```
+
+Blocks and Yield
+----------------
+
+### Blocks
+
+A block in Ruby is like a closure or anonymous function. They accept arguments,
+run code, and have a return value. They introduce a new, isolated scope so that
+variables defined within the block don't leak outside of the block.
+
+They are commonly used with iterators like:
+
+```
+# a block defined with do..end syntax
+x.each do |val|
+    puts val
+end
+
+# the same block defined with curly braces
+x.each { |val| puts val }
+```
+
+### Yield
+
+If a method uses `yield`, then the method expects to be used with a block.
+When `yield` gets executed, the current method's execution is suspended and a
+different block of code is run. After that block of code has run, execution
+resumes in our function.
+
+
+For example,
+
+```
+def do_thing
+    puts 'before yield'
+    yield 1, 'a', 2
+    puts 'after yield'
+end
+
+# The following prints
+#   before yield
+#   1
+#   a
+#   2
+#   after yield
+do_thing do |a, b, c|
+    puts a, b, c
+end
+```
+
+This shows that we can run a method, yield to a block (with arguments!), and
+the resume the original method.
+
+*Aside* A block is a way to define a
+[`Proc`](http://ruby-doc.org/core-2.3.1/Proc.html) object. `Proc` objects
+can be defined with either `do..end` or curly brace syntax.
