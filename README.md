@@ -28,22 +28,54 @@ Some of the available tools are:
 - [rbenv](https://github.com/rbenv/rbenv): manage per-project versions of ruby
 - [bundler](http://bundler.io/) manage per-project versions of libraries
 
-It looks like `gem` is the lower-level utility for installing a single library
-from a gem repository. `gem` installs packages/artifacts called "Gems" which
-contain the ruby library or program you wanted to fetch/install.
-
 To isolate project dependencies and manage per-project versions of ruby itself,
 it looks like I should use either:
 
 - rbenv + bundler
 - rvm
 
+### `gem`
+
+`gem` is the lower-level utility for installing a single library from a gem
+repository. `gem` installs packages/artifacts called "Gems" which contain the
+ruby library or program you wanted to fetch/install.
+
+One nice thing about `gem` is that it supports installing multiple versions of
+the same library. Then your project must select which versions of those
+globally-installed libraries your project needs (only one version of a library
+can be _loaded_ at a time).
+
 ### Bundler
 
 Bundler installs easily with `gem install bundler`. You add project
 dependencies to a `Gemfile` at the root of your project directory. Then
 `bundle install` will fetch/install those dependencies. Bundler creates a
-`Gemfile.lock` to pin all of your dependencies (and their dependencies?)
+`Gemfile.lock` to pin all of your dependencies (and their dependencies).
+
+You need to use `bundler exec <command>` to ensure the command gets run with
+the correct, bundler-installed versions of libraries. This is because bundler
+installs everything "globally". Bundler does not manage a per-project directory
+where my dependencies are stored.
+
+For example, you can see how bundler mainpulates the load path by comparing
+the following:
+
+```
+# show the plain ruby load path
+# in bash, be sure to use single quotes (or escape the dollar sign)
+ruby -e 'puts $LOAD_PATH'
+```
+
+Compare that with the bundler-modified load path.
+
+```
+# show the load path, as modified by bundler
+bundler exec ruby -e 'puts $LOAD_PATH'
+```
+
+If you have libraries installed with bundler, the bundler-modified load path
+should list a bunch of paths to gem directories _first_ and then all the
+default paths.
 
 ### rvm and rbenv on Windows...
 
