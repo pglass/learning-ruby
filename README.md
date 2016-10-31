@@ -381,7 +381,6 @@ When `yield` gets executed, the current method's execution is suspended and a
 different block of code is run. After that block of code has run, execution
 resumes in our function.
 
-
 For example,
 
 ```
@@ -408,3 +407,155 @@ the resume the original method.
 *Aside* A block is a way to define a
 [`Proc`](http://ruby-doc.org/core-2.3.1/Proc.html) object. `Proc` objects
 can be defined with either `do..end` or curly brace syntax.
+
+Symbols (what is that colon doing there?)
+-----------------------------------------
+
+*Guideline* - NEVER mix strings and symbols. They do not compare with each
+other like you want and they hash differently.
+*Guideline* - NEVER use dynamically-generated symbols. Avoid writing code
+that requires you (or anyone) to convert between strings and symbols.
+
+Lots of ruby code uses things like `:name` instead of a string like `"name"`.
+Well `:name` is a symbol (_not_ a string). Symbols are kind of like strings,
+except that:
+
+- all occurrences of `:name` have the same reference (i.e. same object id)
+- symbols are immutable! (strings are mutable)
+- symbols are compared using their object ids (rather than char by char, as
+with strings).
+- symbols are hashed using their object id
+
+If you are familiar with [string interning](
+https://en.wikipedia.org/wiki/String_interning), symbols are like interned
+strings (but be careful, symbols and strings aren't interchangeable everywhere)
+
+This is a [good article](
+http://www.randomhacks.net/2007/01/20/13-ways-of-looking-at-a-ruby-symbol/)
+with examples of these differences and more.
+
+Here is an example that shows two matching symbols are the same object, while
+two matching strings may not be.
+
+```
+puts :hello.object_id   # 899868
+puts :hello.object_id   # 899868
+puts "hello".object_id  # 70183008528740
+puts "hello".object_id  # 70183008528680
+```
+
+### Symbol Naming Rules
+
+- symbols cannot start with a number!
+- symbols can have spaces!
+
+```
+# a symbol with spaces
+puts :'a b c'
+
+### Symbols vs strings
+
+Strings and symbols are NOT equal.
+
+```
+puts "hello" == "hello"  # true
+puts :hello == :hello    # true
+puts :hello == "hello"   # false
+puts "hello" == :hello   # false
+```
+
+Symbols are indexable but are immutable.
+
+```
+y = :hello
+puts y[0]    # prints 'h'
+y[0] = "j"   # <-- ERROR - "undefined method `[]=' for :hello:Symbol (NoMethodError)"
+```
+
+You can get the symbol from a name using `intern`.
+
+```
+x = "hello"
+x == :hello   # false
+
+y = x.intern
+y == :hello   # true
+```
+
+I've seen people say symbols are good for hashing, but DON'T mix symbols and
+strings in a hash. Symbols hash on their object id, while strings hash on
+their contents, effectively.
+
+```
+map = {}
+map[:hello] = :hello
+map["hello"] = "hello"
+puts map  # prints {:hello=>:hello, "hello"=>"hello"}
+```
+
+Hashes/Maps
+-----------
+
+In Ruby, a hash is a mapping of key-value pairs (or "dictionary" or
+"associative array"). They are defined with curly braces. Values are set
+or fetched using square brackets.
+
+Hashes can be initialized at definition-time:
+
+```
+map1 = {}                                # an empty map
+map2 = {"a" => 1, "b" => 2}    # a map initialized with two key-value pairs
+```
+
+Then you can get and set things from the map
+
+```
+puts map1["a"]
+map1["a"] = 5
+```
+
+### Hashes and symbols
+
+The [Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide) says the
+following about symbols and maps:
+
+> Prefer symbols instead of strings as hash keys.
+> Avoid the use of mutable objects as hash keys.
+
+(Keep in mind, Ruby strings are mutable)
+
+There are two ways to use symbols as keys in a map. This is the "rocket" way
+(the fat arrows are sometimes called "hash rockets")
+
+```
+# :hello is a symbol that maps to a number
+map = {:hello => 1}
+puts map                # prints {:hello=>1}
+```
+
+This is the "hash literal" way, in which you put the colon _after_ the symbol
+name. This is the _same_ map as above.
+
+```
+# :hello
+map = {hello: 1}
+puts map                # prints {:hello=>1}
+```
+
+The [The Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide)
+recommends this style when your hash keys are symbols:
+
+> Use the Ruby 1.9 hash literal syntax when your hash keys are symbols.
+> Don't mix the Ruby 1.9 hash syntax with hash rockets in the same hash
+> literal. When you've got keys that are not symbols stick to the hash rockets
+> syntax.
+
+I'm in favor of using only hash rockets everywhere. In particular, since symbol
+names cannot start with a number you cannot use the hash literal syntax with
+"integer symbols" like you might expect:
+
+```
+# symbols cannot start with a number
+map = {:1 => 2}  # <-- SYNTAX ERROR - `:1` is an invalid symbol
+map = {1: 2}     # <-- SYNTAX ERROR - `:1` is an invalid symbol
+```
