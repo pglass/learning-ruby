@@ -411,14 +411,17 @@ can be defined with either `do..end` or curly brace syntax.
 Symbols (what is that colon doing there?)
 -----------------------------------------
 
-*Guideline* - NEVER mix strings and symbols. They do not compare with each
+**Guidelines**
+
+- NEVER mix strings and symbols. They do not compare with each
 other like you want and they hash differently.
-*Guideline* - NEVER use dynamically-generated symbols. Avoid writing code
+- NEVER use dynamically-generated symbols. Avoid writing code
 that requires you (or anyone) to convert between strings and symbols.
 
-Lots of ruby code uses things like `:name` instead of a string like `"name"`.
-Well `:name` is a symbol (_not_ a string). Symbols are kind of like strings,
-except that:
+- A string: `"name"`
+- A symbol: `:name`
+
+Symbols have some critical differences from strings:
 
 - all occurrences of `:name` have the same reference (i.e. same object id)
 - symbols are immutable! (strings are mutable)
@@ -452,6 +455,7 @@ puts "hello".object_id  # 70183008528680
 ```
 # a symbol with spaces
 puts :'a b c'
+```
 
 ### Symbols vs strings
 
@@ -472,7 +476,7 @@ puts y[0]    # prints 'h'
 y[0] = "j"   # <-- ERROR - "undefined method `[]=' for :hello:Symbol (NoMethodError)"
 ```
 
-You can get the symbol from a name using `intern`.
+You can get the symbol from a string using `intern`.
 
 ```
 x = "hello"
@@ -482,9 +486,16 @@ y = x.intern
 y == :hello   # true
 ```
 
-I've seen people say symbols are good for hashing, but DON'T mix symbols and
-strings in a hash. Symbols hash on their object id, while strings hash on
-their contents, effectively.
+### Symbols and hashing
+
+People say symbols are good for hashing. Why?
+
+- Symbols are immutable
+- Symbols hash/compare based on their object id, which is fast
+
+But be careful! AVOID mixing symbols and strings as hash keys. Symbols hash on
+their object id, while strings hash on their contents (effectively). For
+example,
 
 ```
 map = {}
@@ -524,8 +535,8 @@ following about symbols and maps:
 
 (Keep in mind, Ruby strings are mutable)
 
-There are two ways to use symbols as keys in a map. This is the "rocket" way
-(the fat arrows are sometimes called "hash rockets")
+There are two ways to use symbols as keys in a map. There is the "rocket" way
+(the fat arrows are sometimes called "hash rockets"):
 
 ```
 # :hello is a symbol that maps to a number
@@ -533,8 +544,8 @@ map = {:hello => 1}
 puts map                # prints {:hello=>1}
 ```
 
-This is the "hash literal" way, in which you put the colon _after_ the symbol
-name. This is the _same_ map as above.
+And there is the "hash literal" way, in which you put the colon _after_ the
+symbol name. This is the _same_ map as above.
 
 ```
 # :hello
